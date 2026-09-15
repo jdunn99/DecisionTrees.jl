@@ -1,0 +1,13 @@
+name = "DecisionTrees"
+uuid = "5516f584-1431-434f-a482-4a3b4bab9652"
+authors = ["Jack Dunn"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.10.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
