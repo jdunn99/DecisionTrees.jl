@@ -1,0 +1,43 @@
+abstract type Criterion end
+
+abstract type ClassificationCriterion <: Criterion end
+struct GiniCriterion <: ClassificationCriterion end
+
+abstract type RegressionCriterion <: Criterion end
+struct MSECriterion <: RegressionCriterion end
+
+function unique_classes(labels::AbstractVector)
+	classes = Dict{eltype(labels), Int}()
+	for class in labels
+		classes[class] = get(classes, class, 0) + 1
+	end
+
+	return classes
+end
+
+"""
+1. Count the unique classes in the target labels
+2. p = (count / length)
+
+"""
+function classification_probability(labels::AbstractVector)
+	n = length(labels)
+
+	# Exception (?)
+	n == 0 && return Nothing
+
+	classes = unique_classes(labels)
+	return Dict(k => v / n for (k, v) in classes)
+end
+
+# Calculate Gini loss
+function calculate_loss(::GiniCriterion, labels::AbstractVector)
+	total_p = 0
+	probabilities = classification_probability(labels)
+
+	for p in values(probabilities)
+		total_p += p^2
+	end
+
+	return 1.0 - total_p
+end

@@ -1,5 +1,10 @@
 module DecisionTrees
+using CSV
+using Random
+using DataFrames
 
-# Write your package code here.
+include("data.jl")
+include("criterion.jl")
+include("tree.jl")
 
 end
