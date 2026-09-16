@@ -12,6 +12,33 @@ struct Root{T} <: Node
 	right::Node
 end
 
+# function prediction(::ClassificationCriterion, target_values::AbstractVector)nd
+prediction(::ClassificationCriterion, target_values::AbstractVector) = argmax(unique_classes(target_values))
+prediction(::RegressionCriterion, target_values::AbstractVector) = round(sum(target_values) / length(target_values), digits=4)
+
+# Recursively predict a row in a DataFrame (aka a single observation)
+function predict_row(node::Leaf, _)
+	return node.prediction
+end
+
+# Move until we heat a leaf
+# For now row remains untyped because of the NamedTuple. Could use union but not worth it if I may change it later.
+# TODO: Define a type
+function predict_row(node::Root, row)
+	if row[node.feature] <= node.threshold
+		return predict_row(node.left, row)
+	else
+		return predict_row(node.right, row)
+	end
+end
+
+# Predict on an entire DataFrame
+function predict(tree::Node, data::AbstractDataFrame)
+	return [predict_row(tree, row) for row in eachrow(data)]
+end
+
+# May switch NamedTuple to a different data structure.
+predict(tree::Node, observation::NamedTuple) = predict_row(tree, observation)
 
 # Calculate the split that minimizes loss using the provided criterion
 function best_split(

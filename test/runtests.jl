@@ -10,5 +10,6 @@ using Test
     features = [:petal_length, :petal_width, :sepal_length]
 
     tree = DecisionTrees.fit_tree(data.train_data, target, features, DecisionTrees.GiniCriterion())
-    @show tree
+    pred = DecisionTrees.predict(tree, data.test_data)
+    @show pred
 end
