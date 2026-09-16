@@ -1,20 +1,17 @@
-# Take in a DataFrame, target, features, and a loss criterion
-# Build an unpruned tree using recursive binary splitting
-# Will eventually default to building pruned trees with a default cp value unless provided
-# Maybe in the future will try and support the R style syntax Target ~ f1 + f2 + ...
-function fit_tree(
-	data::AbstractDataFrame,
-	target::Symbol,
-	features::Vector{Symbol},
-	criterion::Criterion,
-	minsplit::Int = 10,
-	maxdepth::Int = 5,
-	currentdepth::Int = 0,	
-)
-	target_values = data[!, target]
-	@show best_split(data, target_values, features, criterion)
-
+# Node structure for tree
+abstract type Node end
+struct Leaf{T}<: Node
+	prediction::T
 end
+
+# Defines a split node with feature, threshold, left, right
+struct Root{T} <: Node
+	feature::Symbol
+	threshold::T
+	left::Node
+	right::Node
+end
+
 
 # Calculate the split that minimizes loss using the provided criterion
 function best_split(
@@ -69,4 +66,44 @@ function best_split(
 	end
 
 	return (gain=best_gain, threshold=best_threshold, feature=best_feature)
+end
+
+# Take in a DataFrame, target, features, and a loss criterion
+# Build an unpruned tree using recursive binary splitting
+# Will eventually default to building pruned trees with a default cp value unless provided
+# Maybe in the future will try and support the R style syntax Target ~ f1 + f2 + ...
+function fit_tree(
+	data::AbstractDataFrame,
+	target::Symbol,
+	features::Vector{Symbol},
+	criterion::Criterion,
+	minsplit::Int = 10,
+	maxdepth::Int = 5,
+	currentdepth::Int = 0,	
+)
+	target_values = data[!, target]
+	classes = unique_classes(target_values)
+	# @show best_split(data, target_values, features, criterion)
+
+	# TODO: Make a dispatched prediction function to handle criterion.
+	# This only works with classification right now.
+	length(unique(target_values)) == 1 && return Leaf(target_values[1])
+
+
+	split = best_split(data, target_values, features, criterion)
+
+	split.gain == -Inf && return Leaf(argmax(classes))
+
+	# Split the tree based on the best threshold value
+	best_feature = data[!, split.feature]
+	threshold_split = best_feature .<= split.threshold
+
+	left_split = @view data[threshold_split, :]
+	right_split = @view data[.!threshold_split, :]
+
+	# Recurse on subtrees
+	left = fit_tree(left_split, target, features, criterion)
+	right = fit_tree(right_split, target, features, criterion)
+
+	return Root(split.feature, split.threshold, left, right)
 end

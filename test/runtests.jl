@@ -9,5 +9,6 @@ using Test
     target = :species
     features = [:petal_length, :petal_width, :sepal_length]
 
-    DecisionTrees.fit_tree(data.train_data, target, features, DecisionTrees.GiniCriterion())
+    tree = DecisionTrees.fit_tree(data.train_data, target, features, DecisionTrees.GiniCriterion())
+    @show tree
 end
