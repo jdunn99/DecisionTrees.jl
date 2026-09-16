@@ -16,7 +16,5 @@ function load_data(path)
 	train_data = @view sample_data[train_indices, :]
 	test_data = @view sample_data[test_indices, :]
 
-	@show (train_data, test_data)
-
 	return (test_data=test_data, train_data=train_data)
 end

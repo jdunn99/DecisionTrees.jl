@@ -15,6 +15,8 @@ using Test
     tree = DecisionTrees.fit_tree(data.train_data, target_reg, features_reg, DecisionTrees.MSECriterion())
     pred = DecisionTrees.predict(tree, data.test_data)
 
+    @show tree.error
+
     # pruning_result = DecisionTrees.generate_alphas(tree)
     cp = DecisionTrees.print_cp(tree)
 
