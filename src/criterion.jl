@@ -1,3 +1,5 @@
+# MAJOR TODO: We need to handle categorical data as a feature in regression.
+
 abstract type Criterion end
 
 abstract type ClassificationCriterion <: Criterion end
@@ -40,4 +42,19 @@ function calculate_loss(::GiniCriterion, labels::AbstractVector)
 	end
 
 	return 1.0 - total_p
+end
+
+# Calculate MSE loss
+function calculate_loss(::MSECriterion, values::AbstractVector)
+	n = length(values)
+	n == 0 && return -Inf
+
+	μ = sum(values) / n
+	s = 0.0
+
+	for val in values
+		s += (val - μ)^2
+	end
+
+	return s / n
 end

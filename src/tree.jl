@@ -110,16 +110,15 @@ function fit_tree(
 )
 	target_values = data[!, target]
 	classes = unique_classes(target_values)
-	# @show best_split(data, target_values, features, criterion)
+	pred = prediction(criterion, target_values)
 
 	# TODO: Make a dispatched prediction function to handle criterion.
 	# This only works with classification right now.
-	length(unique(target_values)) == 1 && return Leaf(target_values[1])
-
+	length(unique(target_values)) == 1 && return Leaf(pred)
 
 	split = best_split(data, target_values, features, criterion)
 
-	split.gain == -Inf && return Leaf(argmax(classes))
+	split.gain == -Inf && return Leaf(pred)
 
 	# Split the tree based on the best threshold value
 	best_feature = data[!, split.feature]
