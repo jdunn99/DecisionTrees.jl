@@ -3,7 +3,6 @@
 # Node structure for tree
 
 # Works like a Tree class in C
-abstract type Node end
 mutable struct TNode{T} 
 	is_leaf::Bool
 	prediction::T
@@ -26,32 +25,13 @@ mutable struct TNode{T}
 	 ) where {T} = new{T}(false, pred, err, feat, thres, l, r)
 end
 
-struct Leaf{T}<: Node
-	prediction::T
-	error::Float64 # used for pruning
-end
-
-# Defines a split node with feature, threshold, left, right
-struct Root{T} <: Node
-	feature::Symbol
-	threshold::T
-	left::Node
-	right::Node
-	error::Float64
-end
-
 """ Metrics """
 count_leaves(node::TNode) = node.is_leaf ? 1 : count_leaft(node.left) + count_leaves(node.right)
-count_leaves(node::Leaf) = 1
-count_leaves(node::Root) = count_leaves(node.left) + count_leaves(node.right)
-count_splits(tree::Node) = count_leaves(tree) - 1 # Don't include the top root
 
 tree_error(::ClassificationCriterion, actual::AbstractVector, predicted::AbstractVector) = Float64(sum(actual .!= predicted))
 tree_error(::RegressionCriterion, actual::AbstractVector, predicted::AbstractVector) = sum((actual .- predicted).^2)
 
 subtree_error(node::TNode) = node.is_leaf ? node.error : subtree_error(node.left) + subtree_error(node.right)
-subtree_error(node::Leaf) = node.error
-subtree_error(node::Root) = subtree_error(node.left) + subtree_error(node.right)
 
 """ Tree Prediction """ 
 # function prediction(::ClassificationCriterion, target_values::AbstractVector)nd
@@ -68,22 +48,6 @@ function predict_row(node::TNode, row)
 	end
 end
 
-# Recursively predict a row in a DataFrame (aka a single observation)
-function predict_row(node::Leaf, _)
-	return node.prediction
-end
-
-# Move until we heat a leaf
-# For now row remains untyped because of the NamedTuple. Could use union but not worth it if I may change it later.
-# TODO: Define a type
-function predict_row(node::Root, row)
-	if row[node.feature] <= node.threshold
-		return predict_row(node.left, row)
-	else
-		return predict_row(node.right, row)
-	end
-end
-
 # Predict on an entire DataFrame
 function predict(tree::TNode, data::AbstractDataFrame)
 	return [predict_row(tree, row) for row in eachrow(data)]
@@ -93,12 +57,6 @@ end
 predict(tree::TNode, observation::NamedTuple) = predict_row(tree, observation)
 
 """ Pruning """
-# function cost_complexity_pruning(tree::Node)
-# 	# Don't modify the tree
-# 	subtrees = [deepcopy(tree)]
-# 	alphas = [0.0]
-
-# end
 
 """ Building Tree """ 
 
