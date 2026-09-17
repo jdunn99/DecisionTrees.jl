@@ -8,5 +8,6 @@ include("data.jl")
 include("criterion.jl")
 include("tree.jl")
 include("pruning.jl")
+include("util.jl")
 
 end

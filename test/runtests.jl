@@ -12,13 +12,19 @@ using Test
     target_reg = :petal_length
     features_reg = [:petal_width, :sepal_length, :sepal_width]
 
-    tree = DecisionTrees.fit_tree(data.train_data, target_reg, features_reg, DecisionTrees.MSECriterion())
-    pred = DecisionTrees.predict(tree, data.test_data)
 
-    @show tree.error
+
+    tree = DecisionTrees.fit_tree(data.train_data, target_reg, features_reg, DecisionTrees.MSECriterion())
+    prune_events = DecisionTrees.generate_alphas(tree)
+
+    DecisionTrees.cross_validate(data.train_data, target_reg, features_reg, DecisionTrees.MSECriterion(), prune_events, tree.error)
+    # pred = DecisionTrees.predict(tree, data.test_data)
+
+    # @show tree.error
 
     # pruning_result = DecisionTrees.generate_alphas(tree)
-    cp = DecisionTrees.print_cp(tree)
+    # cp = DecisionTrees.print_cp(tree)
+
 
     @show cp
 end
