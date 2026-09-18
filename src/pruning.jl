@@ -8,32 +8,6 @@ end
 
 """ Printing & Metrics """
 
-function print_cp(node::TNode)
-    root_error = node.error
-    events = generate_alphas(node)
-    
-    println("\nComplexity Parameter Table:")
-    
-    header = rpad("CP", 10) * rpad("nsplit", 10) * rpad("rel error", 10)
-    println(header)
-    println("-" ^ length(header))
-
-    for event in reverse(events)
-        cp_val = event.alpha / root_error
-        
-        cp_val = max(0.0, cp_val) 
-        
-        cp_str = rpad(round(cp_val, digits=4), 10)
-        nsplit_str = rpad(event.number_splits, 10)
-        rel_error_str = rpad(round(event.rel_error, digits=4), 10)
-        
-        println(cp_str * nsplit_str * rel_error_str)
-    end
-
-    # Return just the raw CP values
-    return [e.alpha / root_error for e in events]
-end
-
 """ K-Fold CV"""
 function kfold_splits(n::Int, k::Int)
 	quotient, remainder = divrem(n, k)
@@ -52,7 +26,6 @@ function kfold_splits(n::Int, k::Int)
 
 	@show folds
 	return folds
-
 end
 
 function cross_validate(
@@ -79,11 +52,29 @@ function cross_validate(
 	# Guarantee full pruning for last alpha
 	thresholds[m] = alphas[m] + thresholds[m-1]
 
-	# Independently builds trees at each fold
+	# error at (alpha size, fold)
+	errors = zeros(Float64, m, k)
+
 	for(i, test_indices) in enumerate(folds)
-		train_index = setdiff(1:n, test_indices)
-		tree = fit_tree(data[train_index, :], target, features, criterion, minsplit, maxdepth)
+		@show (i, test_indices)
+
+		# Build tree on k-1 folds
+		train_indices = setdiff(1:n, test_indices)
+		tree = fit_tree(data[train_indices, :], target, features, criterion, minsplit, maxdepth)
+
+		# Independently prune trees at each threshold and test on kth fold
+		for j in 1:m
+			pruned = prune_to_target(tree, thresholds[j])
+			preds = predict(pruned, data[test_indices, :])
+			errors[j, i] = round(tree_error(criterion, data[test_indices, target], preds), digits=4)
+		end
 	end
+
+	total_error = vec(sum(errors, dims=2))
+	xerror = total_error ./ root_error
+	xstd = [std_dev((errors ./ root_error)[i,:]) / sqrt(k) for i in 1:m]
+
+	return (thresholds=thresholds, xerror=xerror, xstd=xstd)
 end
 
 """ Alpha Gen and Node Pruning """
@@ -173,4 +164,15 @@ function generate_alphas(tree::TNode{T}) where {T}
 	end
 
 	return events
+end
+
+function prune_to_target(tree::TNode{T}, target_alpha::Float64) where {T}
+	current = deepcopy(tree)
+	pq = build_queue(current)
+
+	while !isempty(pq) && first(pq)[2] <= target_alpha
+		prune_weakest_nodes!(pq)
+	end
+
+	return current
 end
