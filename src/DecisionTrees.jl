@@ -3,6 +3,7 @@ using CSV
 using Random
 using DataFrames
 using DataStructures
+using Plots
 
 include("data.jl")
 include("criterion.jl")
