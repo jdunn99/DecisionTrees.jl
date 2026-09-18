@@ -31,25 +31,25 @@ function fit(
 	return Model(tree, criterion, target, features, minsplit, maxdepth, root_error, n, events, cv.thresholds, cv.xerror, cv.xstd)
 end
 
-# function print_cp(model::Model)
-# 	println("Root node error: ", round(model.root_error, digits=5), "/", model.n,
-# 	        " = ", round(model.root_error / model.n, digits=5))
-# 	println()
-# 	println("n= ", model.n)
-# 	println()
+function print_cp(model::Model)
+	println("Root node error: ", round(model.root_error, digits=5), "/", model.n,
+	        " = ", round(model.root_error / model.n, digits=5))
+	println()
+	println("n= ", model.n)
+	println()
 
-# 	rows = reverse(model.events)
-# 	println(rpad("", 3), rpad("CP", 10), rpad("nsplit", 8), rpad("rel error", 11),
-# 	        rpad("xerror", 9), "xstd")
-# 	for (i, e) in enumerate(rows)
-# 		idx = length(model.events) - i + 1  
-# 		cp = round(e.alpha / model.root_error, digits=6)
-# 		println(rpad(i, 3), rpad(cp, 10), rpad(e.number_splits, 8),
-# 		        rpad(round(e.rel_error, digits=5), 11),
-# 		        rpad(round(model.xerror[idx], digits=5), 9),
-# 		        round(model.xstd[idx], digits=6))
-# 	end
-# end
+	rows = reverse(model.events)
+	println(rpad("", 3), rpad("CP", 10), rpad("nsplit", 8), rpad("rel error", 11),
+	        rpad("xerror", 9), "xstd")
+	for (i, e) in enumerate(rows)
+		idx = length(model.events) - i + 1  
+		cp = round(e.alpha / model.root_error, digits=6)
+		println(rpad(i, 3), rpad(cp, 10), rpad(e.number_splits, 8),
+		        rpad(round(e.rel_error, digits=5), 11),
+		        rpad(round(model.xerror[idx], digits=5), 9),
+		        round(model.xstd[idx], digits=6))
+	end
+end
 
 function plot_cp(model::Model)
 	# We need events, root_error, xerr, xstd
