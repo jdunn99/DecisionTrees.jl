@@ -6,8 +6,6 @@ struct PruneEvent{T}
 	rel_error::Float64
 end
 
-""" Printing & Metrics """
-
 """ K-Fold CV"""
 function kfold_splits(n::Int, k::Int)
 	quotient, remainder = divrem(n, k)
@@ -24,7 +22,6 @@ function kfold_splits(n::Int, k::Int)
 		start = stop
 	end
 
-	@show folds
 	return folds
 end
 
@@ -56,8 +53,6 @@ function cross_validate(
 	errors = zeros(Float64, m, k)
 
 	for(i, test_indices) in enumerate(folds)
-		@show (i, test_indices)
-
 		# Build tree on k-1 folds
 		train_indices = setdiff(1:n, test_indices)
 		tree = fit_tree(data[train_indices, :], target, features, criterion, minsplit, maxdepth)

@@ -12,19 +12,7 @@ using Test
     target_reg = :petal_length
     features_reg = [:petal_width, :sepal_length, :sepal_width]
 
-
-    tree = DecisionTrees.fit_tree(data.train_data, target_class, features_class, DecisionTrees.GiniCriterion())
-    prune_events = DecisionTrees.generate_alphas(tree)
-
-    DecisionTrees.print_full_cp_table(tree, data.train_data, target_class, features_class, DecisionTrees.GiniCriterion())
-
-    # DecisionTrees.cross_validate(data.train_data, target_reg, features_reg, DecisionTrees.MSECriterion(), prune_events, tree.error)
-    # pred = DecisionTrees.predict(tree, data.test_data)
-
-    # @show tree.error
-
-    # pruning_result = DecisionTrees.generate_alphas(tree)
-    # cp = DecisionTrees.print_cp(tree)
+    model = DecisionTrees.fit(data.train_data, target_reg, features_reg, DecisionTrees.MSECriterion())
 
 
     # @show cp

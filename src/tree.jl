@@ -151,7 +151,6 @@ function fit_tree(
 	currentdepth::Int = 0,
 )
 	target_values = data[!, target]
-	classes = unique_classes(target_values)
 	pred = prediction(criterion, target_values)
 	current_error = tree_error(criterion, target_values, fill(pred, length(target_values)))
 

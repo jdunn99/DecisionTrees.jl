@@ -26,7 +26,7 @@ function classification_probability(labels::AbstractVector)
 	n = length(labels)
 
 	# Exception (?)
-	n == 0 && return nothing
+	n == 0 && return Dict{eltype(labels), Float64}()
 
 	classes = unique_classes(labels)
 	return Dict(k => v / n for (k, v) in classes)
