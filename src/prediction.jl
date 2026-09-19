@@ -52,7 +52,5 @@ julia> predict(tree, (x = 2.5))
 function predict(tree::TNode, data::AbstractDataFrame)
 	return [predict_row(tree, row) for row in eachrow(data)]
 end
-
-# May switch NamedTuple to a different data structure.
 predict(tree::TNode, observation::NamedTuple) = predict_row(tree, observation)
 
