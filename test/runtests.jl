@@ -13,7 +13,7 @@ using Plots
     target_reg = :petal_length
     features_reg = [:petal_width, :sepal_length, :sepal_width]
 
-    model = DecisionTrees.fit(data.train_data, target_reg, features_reg, DecisionTrees.MSECriterion())
+    model = DecisionTrees.fit(data.train_data, target_class, features_class, DecisionTrees.GiniCriterion())
     DecisionTrees.print_cp(model)
 
 end

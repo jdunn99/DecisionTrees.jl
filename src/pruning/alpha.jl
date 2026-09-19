@@ -1,3 +1,8 @@
+"""
+	build_queue(tree)
+
+Builds a `PriorityQueue` of tree alphas
+"""
 function build_queue(tree::TNode{T}) where {T}
 	pq = PriorityQueue{TNode{T}, Float64}()
 
@@ -11,6 +16,12 @@ function build_queue(tree::TNode{T}) where {T}
 end
 
 
+"""
+	generate_alphas(tree)
+
+Computer the full cost complexity pruning sequence, returning a `PruneEvent` per each alpha breakpoint.
+Does not mutate the original `tree`. Used to build the alpha/cp table.
+"""
 function generate_alphas(tree::TNode{T}) where {T}
 	current = deepcopy(tree)
 	events = PruneEvent{T}[] # Used for tree reconstruction

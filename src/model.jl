@@ -1,3 +1,20 @@
+"""
+	Model{T}
+
+The result of fitting and cross-validating a decision tree via [`fit`](@ref).
+Bundles the tree itself with everything needed to build a complexity parameter table.
+
+# Fields
+- `tree`: The unpruned base tree
+- `criterion`: The [`Criterion`](@ref) used to build the tree
+- `target`: The column being predicted
+- `features`: The columns used in splitting
+- `minsplit`, `maxdepth`: Stopping parameters used in building the tree
+- `root_error`: Unpruned root error used to normalize `xerror`
+- `n`: The number of training rows
+- `events`: The [`PruneEvent`](@ref) result from [`generate_alphas`](@ref)
+- `thresholds`, `xerror`, `xstd`: Per level cross validation results from [`cross_validate`](@ref)
+"""
 struct Model{T}
 	tree::TNode{T}
 	criterion::Criterion
@@ -13,6 +30,34 @@ struct Model{T}
 	xstd::Vector{Float64}
 end
 
+"""
+	fit(data, target, features, criterion, minsplit = 10, maxdepth = 5, k = 10)
+
+Fits a decision tree and cross validate using cost-complexity pruning.
+Builds an unpruned tree, computes the alpha sequence, and runs K-fold CV.
+
+Returns a [`Model`](@ref) holding all results ready for analysis.
+
+# Arguments
+- `data`: Training data to build model
+- `target`: Column to predict
+- `target`: The column being predicted
+- `features`: The columns used in splitting
+- `minsplit`, `maxdepth`: Stopping parameters used in building the tree
+- `k`: Number of cross validation folds (default `10`)
+
+# Examples
+```jldoctest
+julia> using DecisionTrees, DataFrames
+
+julia> data = DataFrame(x = collect(1.0:20.0), y = [fill(0.0, 10); fill(1.0, 10)]);
+
+julia> model = fit(data, :y, [:x], MSECriterion(); minsplit=2, maxdepth=3, k=5);
+
+julia> model.n
+20
+```
+"""
 function fit(
 	data::AbstractDataFrame,
 	target::Symbol,
@@ -30,6 +75,9 @@ function fit(
 
 	return Model(tree, criterion, target, features, minsplit, maxdepth, root_error, n, events, cv.thresholds, cv.xerror, cv.xstd)
 end
+
+# Section still a work in progress. Not 100% sure about how to format printing / plotting.
+# Basically copy rpart or something else?
 
 function print_cp(model::Model)
 	println("Root node error: ", round(model.root_error, digits=5), "/", model.n,

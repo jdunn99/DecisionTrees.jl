@@ -5,6 +5,8 @@ using DataFrames
 using DataStructures
 using Plots
 
+export fit_tree
+
 include("data.jl")
 include("core/criterion.jl")
 include("core/node.jl")

@@ -3,12 +3,11 @@
 """
 	best_split(data, target_values, features, criterion)
 
-Find the feature and threshold that maximizes gain for a split
-
-# Arguments
-- `data`: full DataFrame
+Find the feature and threshold that maximizes gain for a split of `target_values`.
+Searches over every canditate threshold for every feature in `features`.
 
 # Returns
+`(gain, threshold, feature)`. `gain == -Inf` means not valid split was found.
 """
 function best_split(
 	data::AbstractDataFrame,
@@ -64,11 +63,35 @@ function best_split(
 	return (gain=best_gain, threshold=best_threshold, feature=best_feature)
 end
 
+"""
+	fit_tree(data, target, features, criterion, minsplit=10, maxdepth=5, currentdepth=0)
 
-# Take in a DataFrame, target, features, and a loss criterion
-# Build an unpruned tree using recursive binary splitting
-# Will eventually default to building pruned trees with a default cp value unless provided
-# Maybe in the future will try and support the R style syntax Target ~ f1 + f2 + ...
+Builds an unpruned CART decision tree via recursive binary splitting.
+Uses [`best_split`](@ref) to choose each split and `criterion` to score possible splits.
+
+Returns the root [`TNode`](@ref).
+
+# Arguments
+- `data`: The training data to build the tree
+- `target`: Column to predict
+- `features`: Candidate split columns
+- `criterion`: [`Criterion`](@ref) used in classification / regression.
+- `minsplit`: Minimum node size to split (default `10`)
+- `maxdepth`: Maximum recursion depth (default `5`)
+- `currentdepth`: Internal recursion counter. NOTE: Leave at default when calling `fit_tree` directly.
+
+# Examples
+```jldoctest
+julia> using DecisionTrees, DataFrames
+
+julia> data = DataFrame(x = [1.0, 2.0, 3.0, 4.0], y = [0.0, 0.0, 1.0, 1.0]);
+
+julia> tree = fit_tree(data, :y, [:x], MSECriterion());
+
+julia> tree.is_leaf
+false
+```
+"""
 function fit_tree(
 	data::AbstractDataFrame,
 	target::Symbol,
