@@ -1,23 +1,4 @@
 """
-	PruneEvent{T}
-
-Used to track the result of each pruning step.
-
-# Fields
-- `alpha`: The alpha used to prune
-- `pruned_nodes`: The nodes removed from the tree
-- `number_splits`: The new number of splits in the tree
-- `rel_error`: The associated error of the newly pruned tree
-"""
-struct PruneEvent{T}
-	alpha::Float64
-	pruned_nodes::Vector{TNode{T}}
-	number_splits::Int
-	rel_error::Float64
-end
-
-
-"""
 	prune!(node, pq)
 
 Collapse `node` into a leaf in place. Resets the cached subtree from the PriorityQueue

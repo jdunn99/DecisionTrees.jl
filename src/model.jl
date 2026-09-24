@@ -1,36 +1,4 @@
 """
-	Model{T}
-
-The result of fitting and cross-validating a decision tree via [`fit`](@ref).
-Bundles the tree itself with everything needed to build a complexity parameter table.
-
-# Fields
-- `tree`: The unpruned base tree
-- `criterion`: The [`Criterion`](@ref) used to build the tree
-- `target`: The column being predicted
-- `features`: The columns used in splitting
-- `minsplit`, `maxdepth`: Stopping parameters used in building the tree
-- `root_error`: Unpruned root error used to normalize `xerror`
-- `n`: The number of training rows
-- `events`: The [`PruneEvent`](@ref) result from [`generate_alphas`](@ref)
-- `thresholds`, `xerror`, `xstd`: Per level cross validation results from [`cross_validate`](@ref)
-"""
-struct Model{T}
-	tree::TNode{T}
-	criterion::Criterion
-	target::Symbol
-	features::Vector{Symbol}
-	minsplit::Int
-	maxdepth::Int
-	root_error::Float64
-	n::Int
-	events::Vector{PruneEvent{T}}
-	thresholds::Vector{Float64}
-	xerror::Vector{Float64}
-	xstd::Vector{Float64}
-end
-
-"""
 	fit(data, target, features, criterion, minsplit = 10, maxdepth = 5, k = 10)
 
 Fits a decision tree and cross validate using cost-complexity pruning.

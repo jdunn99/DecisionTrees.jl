@@ -7,6 +7,7 @@ using Plots
 
 export fit_tree
 
+include("core/types.jl")
 include("data.jl")
 include("core/criterion.jl")
 include("core/node.jl")

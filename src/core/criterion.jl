@@ -2,47 +2,6 @@
 # criterion.jl - Core classification and regression loss metrics 
 
 """
-	Criterion
-
-Abstract type for all spliting criteria used by [`best_split`](@ref) and [`fit_tree`](@ref)
-
-Every subtype must have a corresponding `calculate_loss(::Criterion, values::AbstractVector)` method.
-"""
-abstract type Criterion end
-
-
-"""
-	ClassificationCriterion <: Criterion
-
-Abstract type for splitting criteria when the target is categorical
-"""
-abstract type ClassificationCriterion <: Criterion end
-
-
-"""
-	GiniCriterion <: ClassificationCriterion
-
-Categorical criterion corresponding to the Gini index.
-"""
-struct GiniCriterion <: ClassificationCriterion end
-
-
-"""
-	RegressionCriterion <: Criterion
-
-Abstract type for splitting criteria when the target is numerical.
-"""
-abstract type RegressionCriterion <: Criterion end
-
-"""
-	MSECriterion <: RegressionCriterion
-
-Categorical criterion corresponding to the Mean Squared Error.
-"""
-struct MSECriterion <: RegressionCriterion end
-
-
-"""
 	unique_classes(labels)
 
 Calculate the number of unique classes among labels and count their frequency.
