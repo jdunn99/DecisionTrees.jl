@@ -44,7 +44,7 @@ then recurses on their children.
 """
 function _get_subtree!(nodes::Vector{TNode}, node::TNode)
 	if !node.is_leaf
-		push!(nodes, node)
+		Base.push!(nodes, node)
 		_get_subtree!(nodes, node.left)
 		_get_subtree!(nodes, node.right)
 	end

@@ -27,7 +27,7 @@ function generate_alphas(tree::TNode{T}) where {T}
 	events = PruneEvent{T}[] # Used for tree reconstruction
 	root_error = current.error
 
-	push!(events, PruneEvent(0.0, TNode{T}[], current.number_leaves - 1, current.subtree_error / root_error))
+	Base.push!(events, PruneEvent(0.0, TNode{T}[], current.number_leaves - 1, current.subtree_error / root_error))
 
 	pq = build_queue(current)
 
@@ -39,7 +39,7 @@ function generate_alphas(tree::TNode{T}) where {T}
 		number_splits = current.number_leaves - 1
 		rel_error = current.subtree_error / root_error
 
-		push!(events, PruneEvent(result.alpha, pruned, number_splits, rel_error))
+		Base.push!(events, PruneEvent(result.alpha, pruned, number_splits, rel_error))
 	end
 
 	return events

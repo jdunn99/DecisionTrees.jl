@@ -65,7 +65,7 @@ function prune_weakest_nodes!(pq::PriorityQueue{TNode{T}, Float64}) where {T}
 
 		if is_attached(node)
 			prune!(node, pq)
-			push!(pruned, deepcopy(node))
+			Base.push!(pruned, deepcopy(node))
 		end
 	end
 

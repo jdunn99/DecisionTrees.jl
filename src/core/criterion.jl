@@ -48,7 +48,7 @@ function classification_probability(labels::AbstractVector)
 end
 
 """
-	calculate_loss(::GiniCriterion, labels)
+	calculate_total_loss(::GiniCriterion, labels)
 
 Calculates the gini impurity of a split relative to each unique class.
 Gini impurity is defined as 1 - ∑ (p_i)^2.
@@ -60,7 +60,7 @@ Gini impurity is defined as 1 - ∑ (p_i)^2.
 `loss` The total gini immpurity of the split
 """
 # Calculate Gini loss
-function calculate_loss(::GiniCriterion, labels::AbstractVector)
+function calculate_total_loss(::GiniCriterion, labels::AbstractVector)
 	total_p = 0
 	probabilities = classification_probability(labels)
 
@@ -73,6 +73,7 @@ function calculate_loss(::GiniCriterion, labels::AbstractVector)
 	return loss
 end
 
+
 """
 	calculate_loss(::MSECriterion, values::AbstractVector)
 
@@ -84,7 +85,7 @@ Calculates the Mean Squared Error (MSE) loss of a split relative to the target v
 # Returns
 `mse` the resulting MSE
 """
-function calculate_loss(::MSECriterion, values::AbstractVector)
+function calculate_total_loss(::MSECriterion, values::AbstractVector)
 	n = length(values)
 	n == 0 && return Inf
 
@@ -98,4 +99,100 @@ function calculate_loss(::MSECriterion, values::AbstractVector)
 	mse = s / n
 
 	return mse
+end
+
+
+# State
+function init_state(criterion::Criterion, values::AbstractVector)
+	state = new_state(criterion, values)
+	for value in values
+		push!(state, value)
+	end
+
+	return state
+end
+
+new_state(::MSECriterion, ::AbstractVector) = MSEState()
+new_state(::GiniCriterion, values::AbstractVector{T}) where {T} = GiniState{T}()
+
+
+# State operations
+function push!(state::MSEState, v)
+	state.n += 1
+	state.sum += v
+	state.sumsq += v^2
+end
+
+function push!(state::GiniState, v)
+	state.n += 1
+	state.counts[v] = get(state.counts, v, 0) + 1
+end
+
+
+function pop!(state::MSEState, v)
+	state.n -= 1
+	state.sum -= v
+	state.sumsq -= v^2
+end
+
+function pop!(state::GiniState, v)
+	@show state.counts
+
+	state.n -= 1
+	c = state.counts[v] - 1
+	c == 0 ? delete!(state.counts, v) : (state.counts[v] = c)
+end
+
+# Loss Metrics
+
+"""
+	calculate_loss(::GiniCriterion, labels)
+
+Calculates the gini impurity of a split relative to each unique class.
+Gini impurity is defined as 1 - ∑ (p_i)^2.
+
+# Arguments
+- `labels`: Target classification labels
+
+# Returns
+`loss` The total gini immpurity of the split
+"""
+# Calculate Gini loss
+function calculate_loss(state::GiniState)
+	state.n == 0 && return 1.0
+	total_p = 0
+
+	for p in values(state.counts)
+		total_p += (p / state.n)^2
+	end
+
+	return 1.0 - total_p
+end
+
+"""
+	calculate_loss(::MSECriterion, values::AbstractVector)
+
+Calculates the Mean Squared Error (MSE) loss of a split relative to the target values.
+
+# Arguments
+- `values`: Target values
+
+# Returns
+`mse` the resulting MSE
+"""
+function calculate_loss(state::MSEState)
+	state.n == 0 && return Inf
+
+	μ = state.sum / state.n
+	mean_squared = state.sumsq / state.n
+
+	# s = 0.0
+
+	# for val in values
+	# 	s += (val - μ)^2
+	# end
+
+	# mse = s / n
+
+	return mean_squared - μ^2
 end

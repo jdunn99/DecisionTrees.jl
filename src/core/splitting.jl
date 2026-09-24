@@ -9,53 +9,126 @@ Searches over every canditate threshold for every feature in `features`.
 # Returns
 `(gain, threshold, feature)`. `gain == -Inf` means not valid split was found.
 """
-function best_split(
-	data::AbstractDataFrame,
+# function best_split(
+# 	data::AbstractDataFrame,
+# 	target_values::AbstractVector,
+# 	features::Vector{Symbol},
+# 	criterion::Criterion
+# )
+# 	n = length(target_values)
+	
+# 	parent_loss = calculate_loss(criterion, target_values)	
+
+# 	best_gain = -Inf
+# 	best_feature = :none
+# 	best_threshold = nothing
+
+# 	# Determine which feature provides the best split
+# 	for feature in features
+# 		feature_values = data[!, feature]
+# 		unique_features = unique(feature_values)
+# 		# Sort each feature value to find optimal threshold
+# 		sort!(unique_features)
+
+# 		for i in 1:(length(unique_features) - 1)
+# 			threshold = unique_features[i]
+
+# 			# Split into binary array based on threshold
+# 			threshold_split = feature_values .<= threshold
+
+# 			if !any(threshold_split) || all(threshold_split)
+# 				continue
+# 			end
+
+# 			# Split the data based on the threshold
+# 			left_split = @view target_values[threshold_split]
+# 			right_split = @view target_values[.!threshold_split]
+
+# 			nl = length(left_split)
+# 			nr = n - nl
+
+# 			weighted_loss = (nl / n) * calculate_loss(criterion, left_split) +
+# 				   (nr / n) * calculate_loss(criterion, right_split)
+# 			gain = parent_loss - weighted_loss
+
+# 			if gain > best_gain
+# 				best_gain = gain
+# 				best_threshold = threshold
+# 				best_feature = feature
+# 			end
+# 		end
+
+# 	end
+
+# 	return (gain=best_gain, threshold=best_threshold, feature=best_feature)
+# end
+
+function numerical_split(
+	feature_values::AbstractVector,
 	target_values::AbstractVector,
-	features::Vector{Symbol},
-	criterion::Criterion
+	criterion::Criterion	
 )
 	n = length(target_values)
-	
-	parent_loss = calculate_loss(criterion, target_values)	
 
+	# Track the indices that sorts feature_values and order the target the same
+	sort_indices = sortperm(feature_values)
+	sorted_feature = feature_values[sort_indices]
+	sorted_target = target_values[sort_indices]
+
+	parent_loss = calculate_total_loss(criterion, sorted_target)
+	left_state = new_state(criterion, sorted_target)
+	right_state = init_state(criterion, sorted_target)
+
+	best_gain = -Inf
+	best_threshold = nothing
+
+	i = 1
+	while i <= n - 1
+		value = sorted_feature[i]
+		j = i
+		# Skips all tied rows
+		while j <= n && sorted_feature[j] == value
+			push!(left_state, sorted_target[j])
+			pop!(right_state, sorted_target[j])
+			j += 1
+		end
+
+		num_left = j - 1
+		num_right = n - num_left
+
+		if num_left > 0 && num_right > 0
+			loss = (num_left / n) * calculate_loss(left_state) + (num_right / n) * calculate_loss(right_state)
+			gain = parent_loss - loss
+
+			if gain > best_gain
+				best_gain = gain
+				best_threshold = value
+			end
+		end
+		i = j
+	end
+
+	return (gain=best_gain, threshold=best_threshold)
+end
+
+function best_split(
+	data::AbstractDataFrame, 
+	target_values::AbstractVector, 
+	features::Vector{Symbol}, 
+	criterion::Criterion
+)
 	best_gain = -Inf
 	best_feature = :none
 	best_threshold = nothing
 
-	# Determine which feature provides the best split
 	for feature in features
 		feature_values = data[!, feature]
-		unique_features = unique(feature_values)
-		# Sort each feature value to find optimal threshold
-		sort!(unique_features)
+		result = numerical_split(feature_values, target_values, criterion)
 
-		for i in 1:(length(unique_features) - 1)
-			threshold = unique_features[i]
-
-			# Split into binary array based on threshold
-			threshold_split = feature_values .<= threshold
-
-			if !any(threshold_split) || all(threshold_split)
-				continue
-			end
-
-			# Split the data based on the threshold
-			left_split = @view target_values[threshold_split]
-			right_split = @view target_values[.!threshold_split]
-
-			nl = length(left_split)
-			nr = n - nl
-
-			weighted_loss = (nl / n) * calculate_loss(criterion, left_split) +
-				   (nr / n) * calculate_loss(criterion, right_split)
-			gain = parent_loss - weighted_loss
-
-			if gain > best_gain
-				best_gain = gain
-				best_threshold = threshold
-				best_feature = feature
-			end
+		if result.gain > best_gain
+			best_gain = result.gain
+			best_feature = feature
+			best_threshold = result.threshold
 		end
 
 	end
@@ -110,6 +183,7 @@ function fit_tree(
 	length(target_values) < minsplit && return TNode(pred, current_error)
 
 	split = best_split(data, target_values, features, criterion)
+	@show split
 	split.gain == -Inf && return TNode(pred, current_error)
 
 	# Split the tree based on the best threshold value
