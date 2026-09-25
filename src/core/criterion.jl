@@ -136,8 +136,6 @@ function pop!(state::MSEState, v)
 end
 
 function pop!(state::GiniState, v)
-	@show state.counts
-
 	state.n -= 1
 	c = state.counts[v] - 1
 	c == 0 ? delete!(state.counts, v) : (state.counts[v] = c)

@@ -15,7 +15,6 @@ function build_queue(tree::TNode{T}) where {T}
 	return pq
 end
 
-
 """
 	generate_alphas(tree)
 

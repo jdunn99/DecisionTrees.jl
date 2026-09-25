@@ -108,7 +108,49 @@ function numerical_split(
 		i = j
 	end
 
-	return (gain=best_gain, threshold=best_threshold)
+	return (gain=best_gain, threshold=ThresholdSplitRule(best_threshold))
+end
+
+# WARNING: THIS FUNCTION IS VERY EXPENSIVE. THERE WILL NEED TO BE A LOT OF OPTIMIZATION LATER ON.
+function categorical_split(
+	feature_values::AbstractVector,
+	target_values::AbstractVector,
+	criterion::Criterion
+)
+	categories = unique(feature_values)	
+	n = length(categories)
+
+	n < 2 && return (gain=-Inf, threshold=nothing)
+
+	m = length(target_values)
+	parent_loss = calculate_total_loss(criterion, target_values)
+
+	best_gain = -Inf
+	best_left_set = nothing
+
+	# Split each category into 2 non-empty groups. Keep the one with best gain. 
+	# Basically just create the powerset and iterate.
+	rest = categories[2:end]
+	for i in 1:(2^(n-1) - 1)
+		left_mask = Bool.(digits(i, base=2, pad=n-1))
+		left_set = Set(rest[left_mask])
+
+		left_els = feature_values .∈ Ref(left_set)
+		num_left = count(left_els)
+		num_right = m - num_left
+
+		(num_left == 0 || num_right == 0) && continue
+
+		loss = (num_left / m) * calculate_total_loss(criterion, @view target_values[left_els]) + (num_right / m) * calculate_total_loss(criterion, @view target_values[.!left_els])
+		gain = parent_loss - loss
+
+		if gain > best_gain
+			best_gain = gain
+			best_left_set = left_set
+		end
+	end
+
+	return (gain=best_gain, threshold=CategoricalSplitRule(best_left_set))
 end
 
 function best_split(
@@ -123,7 +165,9 @@ function best_split(
 
 	for feature in features
 		feature_values = data[!, feature]
-		result = numerical_split(feature_values, target_values, criterion)
+
+		result = eltype(feature_values) <: Real ? numerical_split(feature_values, target_values, criterion) :
+		categorical_split(feature_values, target_values, criterion)
 
 		if result.gain > best_gain
 			best_gain = result.gain
@@ -135,6 +179,9 @@ function best_split(
 
 	return (gain=best_gain, threshold=best_threshold, feature=best_feature)
 end
+
+split_threshold(rule::ThresholdSplitRule, value) = value <= rule.threshold
+split_threshold(rule::CategoricalSplitRule, value) = value in rule.left_values
 
 """
 	fit_tree(data, target, features, criterion, minsplit=10, maxdepth=5, currentdepth=0)
@@ -183,12 +230,16 @@ function fit_tree(
 	length(target_values) < minsplit && return TNode(pred, current_error)
 
 	split = best_split(data, target_values, features, criterion)
-	@show split
 	split.gain == -Inf && return TNode(pred, current_error)
 
 	# Split the tree based on the best threshold value
 	best_feature = data[!, split.feature]
-	threshold_split = best_feature .<= split.threshold
+
+	threshold_split = split_threshold.(Ref(split.threshold), best_feature)
+
+	# threshold_split = eltype(split.threshold) <: Real ? best_feature .<= split.threshold : 
+
+	@show split.threshold
 
 	left_split = @view data[threshold_split, :]
 	right_split = @view data[.!threshold_split, :]

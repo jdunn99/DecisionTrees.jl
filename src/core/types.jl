@@ -71,6 +71,10 @@ struct ThresholdSplitRule <: SplitRule
 	threshold::Float64
 end
 
+struct CategoricalSplitRule{T} <: SplitRule
+	left_values::Set{T}
+end
+
 # TNode: A tree node
 
 """
@@ -94,7 +98,7 @@ mutable struct TNode{T}
 	prediction::T
 	error::Float64 # Used for pruning
 	feature::Symbol
-	threshold::Float64
+	threshold::Union{SplitRule, Nothing}
 	left::Union{TNode{T}, Nothing}
 	right::Union{TNode{T}, Nothing}
 	parent::Union{TNode{T}, Nothing}
@@ -107,7 +111,7 @@ mutable struct TNode{T}
 	Construct a leaf node with no children
 	"""
 	TNode(pred::T, err::Float64) where {T} = new{T}(true, pred, 
-			err, :none, 0.0, nothing, nothing, nothing, err, 1)
+			err, :none, nothing, nothing, nothing, nothing, err, 1)
 
 	"""
 		TNode(pred, err, thres, l, r)
@@ -118,7 +122,7 @@ mutable struct TNode{T}
 	function TNode(pred::T,
 	 	 err::Float64, 
 	 	 feat::Symbol, 
-	 	 thres::Float64, 
+	 	 thres::SplitRule, 
 	 	 l::TNode{T}, 
 	 	 r::TNode{T}
 	 ) where {T}
@@ -150,7 +154,21 @@ struct PruneEvent{T}
 	rel_error::Float64
 end
 
-# Tree Config
+abstract type TreeConfig end
+
+# Base.@kwdef struct ClassificationTreeConfig <: TreeConfig
+# 	minsplit::Int = 10
+# 	maxdepth::Int = 5
+# 	criterion::ClassificationCriterion = GiniCriterion()
+# 	k::Int = 10
+# end
+
+# Base.@kwdef struct RegressionTreeConfig <: TreeConfig
+# 	minsplit::Int = 10
+# 	maxdepth::Int = 5
+# 	criterion::RegressionCriterion = MSECriterion()
+# 	k::Int = 10
+# end
 
 # Model
 """
