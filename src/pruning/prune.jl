@@ -16,7 +16,7 @@ function prune!(node::TNode, pq::PriorityQueue)
 	node.right = nothing
 	node.subtree_error = node.error
 	node.feature = :none
-	node.threshold = 0.0
+	node.threshold = nothing
 	node.number_leaves = 1
 
 	update_tree!(node, pq)

@@ -13,9 +13,18 @@ using Plots
     target_reg = :petal_length
     features_reg = [:petal_width, :sepal_length, :sepal_width]
 
-    DecisionTrees.fit_tree(data.train_data, :petal_length, [:species, :sepal_length, :sepal_width, :petal_width], DecisionTrees.MSECriterion())
+    # tree = DecisionTrees.fit_tree(data.train_data, :petal_length, [:species, :sepal_length, :sepal_width, :petal_width], DecisionTrees.MSECriterion())
 
-    # model = DecisionTrees.fit(data.train_data, target_class, features_class, (minsplit=10,maxdepth=5,k=5))
+    model = DecisionTrees.fit(data.train_data, target_class, features_class, DecisionTrees.GiniCriterion())
     # DecisionTrees.print_cp(model)
 
+    plt = DecisionTrees.plot_tree(model.tree)
+    savefig(plt, "base.png")
+
+    test_cp = 0.014925
+    alpha = test_cp * model.root_error
+    pruned = DecisionTrees.prune_to_target(model.tree, alpha)
+
+    plt = DecisionTrees.plot_tree(pruned)
+    savefig(plt, "pruned.png")
 end

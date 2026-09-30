@@ -32,7 +32,7 @@ function fit(
 	features::Vector{Symbol},
 	criterion::Criterion,
 	minsplit::Int = 10,
-	maxdepth::Int = 5,
+	maxdepth::Int = 10,
 	k::Int = 10
 )
 	tree = fit_tree(data, target, features, criterion, minsplit, maxdepth)

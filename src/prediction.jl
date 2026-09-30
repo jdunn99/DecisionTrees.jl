@@ -15,7 +15,7 @@ Helper function to recurse through a tree and make a prediction.
 function predict_row(node::TNode, row)
 	node.is_leaf && return node.prediction
 
-	if row[node.feature] <= node.threshold
+	if split_threshold(node.threshold, row[node.feature])
 		return predict_row(node.left, row)
 	else
 		return predict_row(node.right, row)
