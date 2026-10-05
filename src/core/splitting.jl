@@ -108,7 +108,7 @@ function numerical_split(
 		i = j
 	end
 
-	return (gain=best_gain, threshold=ThresholdSplitRule(best_threshold))
+	return (gain=best_gain, threshold=best_threshold === nothing ? nothing : ThresholdSplitRule(best_threshold))
 end
 
 # WARNING: THIS FUNCTION IS VERY EXPENSIVE. THERE WILL NEED TO BE A LOT OF OPTIMIZATION LATER ON.
@@ -150,7 +150,7 @@ function categorical_split(
 		end
 	end
 
-	return (gain=best_gain, threshold=CategoricalSplitRule(best_left_set))
+	return (gain=best_gain, threshold=best_left_set === nothing ? nothing : CategoricalSplitRule(best_left_set))
 end
 
 function best_split(
@@ -236,10 +236,6 @@ function fit_tree(
 	best_feature = data[!, split.feature]
 
 	threshold_split = split_threshold.(Ref(split.threshold), best_feature)
-
-	# threshold_split = eltype(split.threshold) <: Real ? best_feature .<= split.threshold : 
-
-	@show split.threshold
 
 	left_split = @view data[threshold_split, :]
 	right_split = @view data[.!threshold_split, :]

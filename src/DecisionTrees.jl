@@ -18,5 +18,6 @@ include("pruning/cross_validate.jl")
 include("model.jl")
 include("prediction.jl")
 include("util.jl")
+include("ensemble/bagging.jl")
 
 end

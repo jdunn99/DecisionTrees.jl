@@ -72,7 +72,6 @@ function draw_nodes!(node::TNode, plt, positions)
 	x, y = positions[node]
 	# TODO: Categorical threshold needs another condition
 
-	@show eltype(node.threshold)
 	label = node.is_leaf ?
 			"pred=$(node.prediction))\nn=$(node.number_leaves)" :
 			"$(node.feature)\nn=$(node.number_leaves) < $(node.threshold isa ThresholdSplitRule ? node.threshold.threshold : "")"

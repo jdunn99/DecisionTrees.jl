@@ -31,7 +31,7 @@ function fit(
 	target::Symbol,
 	features::Vector{Symbol},
 	criterion::Criterion,
-	minsplit::Int = 10,
+	minsplit::Int = 5,
 	maxdepth::Int = 10,
 	k::Int = 10
 )
@@ -41,13 +41,13 @@ function fit(
 	events = generate_alphas(tree)
 	cv = cross_validate(data, target, features, criterion, events, root_error, k, minsplit, maxdepth)
 
-	return Model(tree, criterion, target, features, minsplit, maxdepth, root_error, n, events, cv.thresholds, cv.xerror, cv.xstd)
+	return DecisionTreeModel(tree, criterion, target, features, minsplit, maxdepth, root_error, n, events, cv.thresholds, cv.xerror, cv.xstd)
 end
 
 # Section still a work in progress. Not 100% sure about how to format printing / plotting.
 # Basically copy rpart or something else?
 
-function print_cp(model::Model)
+function print_cp(model::DecisionTreeModel)
 	println("Root node error: ", round(model.root_error, digits=5), "/", model.n,
 	        " = ", round(model.root_error / model.n, digits=5))
 	println()
@@ -67,7 +67,7 @@ function print_cp(model::Model)
 	end
 end
 
-function plot_cp(model::Model)
+function plot_cp(model::DecisionTreeModel)
 	# We need events, root_error, xerr, xstd
 
 	cps = [event.alpha / model.root_error for event in model.events]

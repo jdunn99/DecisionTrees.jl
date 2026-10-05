@@ -54,3 +54,8 @@ function predict(tree::TNode, data::AbstractDataFrame)
 end
 predict(tree::TNode, observation::NamedTuple) = predict_row(tree, observation)
 
+# This is temporary and will be renamed
+function predict_ensemble(model::BaggingTreeModel, data::AbstractDataFrame)
+	predictions = [predict(tree, data) for tree in model.trees]
+	return aggregate_predictions(model.criterion, predictions)
+end

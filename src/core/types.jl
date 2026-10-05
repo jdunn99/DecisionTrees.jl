@@ -154,21 +154,8 @@ struct PruneEvent{T}
 	rel_error::Float64
 end
 
-abstract type TreeConfig end
-
-# Base.@kwdef struct ClassificationTreeConfig <: TreeConfig
-# 	minsplit::Int = 10
-# 	maxdepth::Int = 5
-# 	criterion::ClassificationCriterion = GiniCriterion()
-# 	k::Int = 10
-# end
-
-# Base.@kwdef struct RegressionTreeConfig <: TreeConfig
-# 	minsplit::Int = 10
-# 	maxdepth::Int = 5
-# 	criterion::RegressionCriterion = MSECriterion()
-# 	k::Int = 10
-# end
+abstract type Model end
+abstract type EnsembleTreeModel{T} <: Model end
 
 # Model
 """
@@ -188,7 +175,7 @@ Bundles the tree itself with everything needed to build a complexity parameter t
 - `events`: The [`PruneEvent`](@ref) result from [`generate_alphas`](@ref)
 - `thresholds`, `xerror`, `xstd`: Per level cross validation results from [`cross_validate`](@ref)
 """
-struct Model{T}
+struct DecisionTreeModel{T} <: Model
 	tree::TNode{T}
 	criterion::Criterion
 	target::Symbol
@@ -201,4 +188,13 @@ struct Model{T}
 	thresholds::Vector{Float64}
 	xerror::Vector{Float64}
 	xstd::Vector{Float64}
+end
+
+struct BaggingTreeModel{T} <: EnsembleTreeModel{T}
+	trees::Vector{TNode{T}}
+	criterion::Criterion
+	target::Symbol
+	features::Vector{Symbol}
+	minsplit::Int
+	maxdepth::Int
 end
