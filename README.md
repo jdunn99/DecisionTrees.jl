@@ -41,9 +41,9 @@ predict(model.tree, data) # predictions on the training data
 
 Rough outline of planned work. Various features and optimizations might be implemented outside of the roadmap.
 
-- [] **Categorical features and best_split optimization** - Change `best_split` to handle non-numeric features. Also work on performance with `best_split`.
-- [] **Bagging and Ensemble Structure** - Basic bootstrap trees with average/majority predictions. Requires a `aggregate` function shared by other ensemble methods.
-- [] **Random Forest** - Bagging plus per-split sampling.
+- [✔] **Categorical features and best_split optimization** - Change `best_split` to handle non-numeric features. Also work on performance with `best_split`.
+- [✔] **Bagging and Ensemble Structure** - Basic bootstrap trees with average/majority predictions. Requires a `aggregate` function shared by other ensemble methods.
+- [In Progress] **Random Forest** - Bagging plus per-split sampling.
 - [] **Boosting** - Requires reworking `fit_tree` 
 - [] **Deployment**
 
