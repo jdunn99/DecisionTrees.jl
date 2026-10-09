@@ -183,6 +183,32 @@ end
 split_threshold(rule::ThresholdSplitRule, value) = value <= rule.threshold
 split_threshold(rule::CategoricalSplitRule, value) = value in rule.left_values
 
+# Called as a base to include mtry splitting in random forest
+function split(
+	data::AbstractDataFrame, 
+	target_values::AbstractVector, 
+	features::Vector{Symbol}, 
+	criterion::Criterion,
+	mtry::Union{Int, Nothing}=nothing
+)
+	n = length(features)
+
+	if mtry === nothing || mtry >= n
+		return best_split(data, target_values, features, criterion)
+	end
+
+	indices = randperm(n)
+	selected_features = features[indices[1:mtry]]
+	s = best_split(data, target_values, selected_features, criterion)
+
+	if s.gain != -Inf
+        return s
+    else
+    	selected_features = features[indices[(mtry + 1):end]]
+        return best_split(data, target_values, selected_features, criterion)
+    end
+end
+
 """
 	fit_tree(data, target, features, criterion, minsplit=10, maxdepth=5, currentdepth=0)
 
@@ -219,6 +245,7 @@ function fit_tree(
 	criterion::Criterion,
 	minsplit::Int = 10,
 	maxdepth::Int = 5,
+	mtry::Union{Int, Nothing}=nothing,
 	currentdepth::Int = 0,
 )
 	target_values = data[!, target]
@@ -229,20 +256,21 @@ function fit_tree(
 	currentdepth >= maxdepth && return TNode(pred, current_error)
 	length(target_values) < minsplit && return TNode(pred, current_error)
 
-	split = best_split(data, target_values, features, criterion)
-	split.gain == -Inf && return TNode(pred, current_error)
+	s = split(data, target_values, features, criterion, mtry)
+	s.gain == -Inf && return TNode(pred, current_error)
 
 	# Split the tree based on the best threshold value
-	best_feature = data[!, split.feature]
+	best_feature = data[!, s.feature]
 
-	threshold_split = split_threshold.(Ref(split.threshold), best_feature)
+	# See: https://discourse.julialang.org/t/what-is-ref/47610
+	threshold_split = split_threshold.(Ref(s.threshold), best_feature)
 
 	left_split = @view data[threshold_split, :]
 	right_split = @view data[.!threshold_split, :]
 
 	# Recurse on subtrees
-	left = fit_tree(left_split, target, features, criterion, minsplit, maxdepth, currentdepth + 1)
-	right = fit_tree(right_split, target, features, criterion, minsplit, maxdepth, currentdepth + 1)
+	left = fit_tree(left_split, target, features, criterion, minsplit, maxdepth, mtry, currentdepth + 1)
+	right = fit_tree(right_split, target, features, criterion, minsplit, maxdepth, mtry, currentdepth + 1)
 
-	return TNode(pred, current_error, split.feature, split.threshold, left, right)
+	return TNode(pred, current_error, s.feature, s.threshold, left, right)
 end
