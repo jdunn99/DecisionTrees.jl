@@ -1,4 +1,12 @@
-function bootstrap(data::AbstractDataFrame, target::Symbol, features::Vector{Symbol}, criterion::Criterion, num_trees::Int, minsplit::Int=10, maxdepth::Int=5)
+function bootstrap(data::AbstractDataFrame, 
+				   target::Symbol, 
+				   features::Vector{Symbol}, 
+				   criterion::Criterion, 
+				   num_trees::Int, 
+				   minsplit::Int=10, 
+				   maxdepth::Int=5,
+				   mtry::Union{Int, Nothing}=nothing
+)
 	n = nrow(data)
 
 	T = eltype(data[!, target])
@@ -7,11 +15,14 @@ function bootstrap(data::AbstractDataFrame, target::Symbol, features::Vector{Sym
 	for i in 1:num_trees
 		samples = rand(1:n, n)	
 		bootstrap_data = @view data[samples, :]
-		trees[i] = fit_tree(bootstrap_data, target, features, criterion)
+		trees[i] = fit_tree(bootstrap_data, target, features, criterion, minsplit, maxdepth, mtry)
 	end
 
-	# aggregating changes based on criterion or 
+	return trees
+end
 
+function bag(data::AbstractDataFrame, target::Symbol, features::Vector{Symbol}, criterion::Criterion, num_trees::Int, minsplit::Int=10, maxdepth::Int=5)
+	trees = bootstrap(data, target, features, criterion, num_trees, minsplit, maxdepth)
 	return BaggingTreeModel(trees, criterion, target, features, minsplit, maxdepth)
 end
 

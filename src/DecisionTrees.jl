@@ -15,9 +15,10 @@ include("pruning/prune.jl")
 include("core/splitting.jl")
 include("pruning/alpha.jl")
 include("pruning/cross_validate.jl")
+include("ensemble/bagging.jl")
+include("ensemble/random_forest.jl")
 include("model.jl")
 include("prediction.jl")
 include("util.jl")
-include("ensemble/bagging.jl")
 
 end

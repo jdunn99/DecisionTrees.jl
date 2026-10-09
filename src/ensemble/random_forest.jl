@@ -1,27 +1,21 @@
-function random_split(
-	data::AbstractDataFrame, 
-	target_values::AbstractVector, 
-	features::Vector{Symbol}, 
-	criterion::Criterion,
-	mtry::Union{Int, Nothing}=nothing
+# Random Forest is just bagging with the added mtry...
+function random_forest(
+	data::AbstractDataFrame,
+	target::Symbol,
+	features::Vector{Symbol},
+	criterion::Criterion;
+	num_trees::Int=25,
+	minsplit::Int = 10,
+	maxdepth::Int = 5,
+	mtry::Union{Int, Nothing}=nothing,
 )
-	n = length(feautres)
+	p = length(features)
+	m = something(mtry, 1)
 
-	if mtry === nothing || mtry >= n
-		return best_split(data, target_values, features, criterion)
+	if !(1 <= m <= p)
+		# TODO: Add more verbose error handling in future error handling patch
+		throw(ArgumentError("Invalid mtry value"))
 	end
 
-	indices = randperm(n)
-	selected_features = features[indices[1:mtry]]
-	split = best_split(data, target_values, selected_features, criterion)
-
-	if split.gain != -Inf
-        return split
-    else
-    	selected_features = features[indices[(mtry + 1):end]]
-        return best_split(data, target_values, selected_features, criterion)
-    end
-end
-
-function fit()
+	return bag(data, target, features, criterion, minsplit, maxdepth, m)
 end
