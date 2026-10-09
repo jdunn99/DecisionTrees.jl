@@ -43,8 +43,8 @@ Rough outline of planned work. Various features and optimizations might be imple
 
 - [✔] **Categorical features and best_split optimization** - Change `best_split` to handle non-numeric features. Also work on performance with `best_split`.
 - [✔] **Bagging and Ensemble Structure** - Basic bootstrap trees with average/majority predictions. Requires a `aggregate` function shared by other ensemble methods.
-- [In Progress] **Random Forest** - Bagging plus per-split sampling.
-- [] **Boosting** - Requires reworking `fit_tree` 
+- [✔] **Random Forest** - Bagging plus per-split sampling.
+- [In Progress] **Boosting** - Requires reworking `fit_tree` 
 - [] **Deployment**
 
 <!-- [![Build Status](https://github.com/jdunn99/DecisionTrees.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/jdunn99/DecisionTrees.jl/actions/workflows/CI.yml?query=branch%3Amaster) -->
